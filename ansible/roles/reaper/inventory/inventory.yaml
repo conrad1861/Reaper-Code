@@ -1,0 +1,16 @@
+---
+plugin: aws_ec2
+# Populate inventory from this region
+regions:
+  - us-east-1
+strict: False
+keyed_groups:
+  # Create group for application tag
+  - key: tags.Application
+    separator: ''
+  # Create group per region
+  - key: placement.region
+    prefix: aws_region
+compose:
+ # Connect with private IP
+ ansible_host: private_ip_address
