@@ -1,0 +1,52 @@
+---
+- name: Create reaper directory
+  file:
+    path: /etc/cassandra-reaper
+    state: directory
+    mode: "0755"
+
+- name: Download RPM
+  get_url:
+    url: https://github.com/thelastpickle/cassandra-reaper/releases/download/3.2.1/reaper-3.2.1-1.x86_64.rpm
+    dest: /etc/cassandra-reaper/
+
+- name: Install Cassandra Reaper
+  yum:
+    name: /etc/cassandra-reaper/reaper-3.2.1-1.x86_64.rpm
+    state: present
+
+- name: Install jar-devel
+  yum:
+    name: java-1.8.0-openjdk-devel.x86_64
+    state: present
+
+- name: Copy Cassandra Reaper
+  template:
+    src: cassandra-reaper
+    dest: /usr/local/bin/cassandra-reaper
+
+- name: Copy shiro.ini
+  template:
+    src: shiro.ini
+    dest: /home/ec2-user/shiro.ini
+
+- name: Push shiro.ini to jar to update the password
+  shell: |
+    jar uf /usr/share/cassandra-reaper/cassandra-reaper-3.2.1.jar shiro.ini
+  become: yes
+
+- name: Remove shiro.ini
+  file:
+    state: absent
+    path: /home/ec2-user/shiro.ini
+
+- name: Copy cassandra-reaper.yaml
+  template:
+    src: cassandra-reaper.yaml
+    dest: /etc/cassandra-reaper/cassandra-reaper.yaml
+  notify:
+    - Restart cassandra-reaper
+  diff: yes
+    
+
+  
